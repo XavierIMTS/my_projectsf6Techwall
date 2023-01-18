@@ -17,7 +17,7 @@ class ToDoController extends AbstractController
     public array $toDoList;
     
        
-    #[Route('/todo', name: 'index')]
+    #[Route('/todo', name: 'todo')]
     public function index(Request $request): Response
     {
         $session = $request->getSession();
@@ -31,9 +31,10 @@ class ToDoController extends AbstractController
             );
 
             $session->set('todos', $todos);
+           
 
         }
-        // Si j'ai mon tableau de toto dans ma session je ne fait que l'afficher
+        // Si j'ai mon tableau de todo dans ma session je ne fais que l'afficher
  
 
         return $this->render('to_do/index2.html.twig', [
@@ -41,16 +42,36 @@ class ToDoController extends AbstractController
         ]);
     }
 
-    #[Route('/todo/{name}/{content}', name: 'todo.add')]
+    #[Route('/todo/add/{name}/{content}', name: 'todo.add')]
 public function addTodo(Request $request, $name, $content) 
 {
+        $session = $request->getSession();
+
     // Vérifier si j'ai mon tableau de todo dans la session
-        // Si oui
+        if ($session->get('todos')) {
+            // Si oui
+            // Si on a déjà un todo avec le meme name
+            $todos = $session->get('todos');
+            $this->addFlash('info', "la liste todos vient d'etre initialisée");
 
-
+            if(isset($todos['name'])){
+                // Si oui on va afficher une erreur
+                $this->addFlash('error', "le todo d'id $name existe déjà dans la liste");
+            }
+            else {
+                // si non on l'ajout et on affiche un message 
+                $todo[$name] = $content;
+                $this->addFlash('success', "le todo d'id $name à été ajouté à la liste");
+                $session->set('todos', $todos);
+            }
+                        
+        } else {        
         // Si non
             // afficher une erreur et on va rediriger ver le controleur index
-
+            $this->addFlash('error', "la liste des todos n'est pas encore initialisée");
+            
+        }
+        return $this->redirectToRoute('todo');
 }
 
 
